@@ -1,0 +1,15 @@
+# frozen_string_literal: true
+
+module Geo
+  class EventWorker # rubocop:disable Scalability/IdempotentWorker
+    include ApplicationWorker
+    include GeoQueue
+    include ::Gitlab::Geo::LogHelpers
+
+    sidekiq_options retry: 3, dead: false
+
+    def perform(replicable_name, event_name, payload)
+      Geo::EventService.new(replicable_name, event_name, payload).execute
+    end
+  end
+end
